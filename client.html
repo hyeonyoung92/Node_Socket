@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="/socket.io/socket.io.js"></script>
+    <script type="text/javascript">
+        var socket = null;
+        window.onload=function () {
+            // Socket 서버와 연결함
+            socket = io.connect();
+            var name = prompt("이름을 입력하세요.");
+            socket.emit("join", name); // 방에 입장
+
+            //클라이언트의 이벤트 ( 서버로부터 메시지를 받음 )
+            socket.on('receive', function (data) {
+                alert(data);
+            });
+
+            //새로운 사용자가 있을 경우, 사용자의 이름을 추가함.
+            socket.on('replace_member', function(data) {
+                var html = "<li class='name' id='"+data.id+"' onclick='selectId(this)'>"+data.name+"</li>";
+                document.getElementById('connectUsers').innerHTML += html;
+            });
+
+            //새롭게 접속한 사용자에게 사용자 목록을 보여줌
+            socket.on('view_member', function(data) {
+                for ( var i in data) {
+                    var html = "<li class='name' id='"+data[i].id+"' onclick='selectId(this)'>"+data[i].name+"</li>";
+                }
+            });
+        };
+
+        function selectId(li) {
+            var message = prompt(li.innerText + "님 에게 메시지를 보냅니다.");
+            socket.emit('sendTo', {'to' :li.id, 'message' : message});
+        }
+    </script>
+</head>
+<body>
+<ul id="connectUsers"></ul>
+</body>
+</html>
